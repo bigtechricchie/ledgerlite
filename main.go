@@ -35,6 +35,8 @@ func main() {
 		},
 	}
 
+	balance := calculateBalance(transactions)
+
 	fmt.Println("LedgerLite")
 	fmt.Println("Simple Banking Ledger")
 	fmt.Println()
@@ -52,4 +54,23 @@ func main() {
 			transaction.Description,
 		)
 	}
+
+	fmt.Println()
+	fmt.Println("Balance:", balance)
+}
+
+func calculateBalance(transactions []Transaction) float64 {
+	var balance float64
+
+	for _, transaction := range transactions {
+		if transaction.Type == "DEPOSIT" {
+			balance += transaction.Amount
+		}
+
+		if transaction.Type == "WITHDRAWAL" {
+			balance -= transaction.Amount
+		}
+	}
+
+	return balance
 }
