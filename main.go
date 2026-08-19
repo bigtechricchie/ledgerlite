@@ -11,23 +11,45 @@ type Transaction struct {
 }
 
 func main() {
-	transaction := Transaction{
-		ID:          "TXN-001",
-		Account:     "FUND-001",
-		Type:        "DEPOSIT",
-		Amount:      10000,
-		Description: "Initial funding",
+	transactions := []Transaction{
+		{
+			ID:          "TXN-001",
+			Account:     "FUND-001",
+			Type:        "DEPOSIT",
+			Amount:      10000,
+			Description: "Initial funding",
+		},
+		{
+			ID:          "TXN-002",
+			Account:     "FUND-001",
+			Type:        "WITHDRAWAL",
+			Amount:      2500,
+			Description: "Management fee",
+		},
+		{
+			ID:          "TXN-003",
+			Account:     "FUND-001",
+			Type:        "DEPOSIT",
+			Amount:      5000,
+			Description: "Additional funding",
+		},
 	}
 
 	fmt.Println("LedgerLite")
 	fmt.Println("Simple Banking Ledger")
 	fmt.Println()
 
-	fmt.Println("Transaction")
-	fmt.Println("-----------")
-	fmt.Println("ID:", transaction.ID)
-	fmt.Println("Account:", transaction.Account)
-	fmt.Println("Type:", transaction.Type)
-	fmt.Println("Amount:", transaction.Amount)
-	fmt.Println("Description:", transaction.Description)
+	fmt.Println("Transactions")
+	fmt.Println("------------")
+	fmt.Println("Number of transactions:", len(transactions))
+
+	for _, transaction := range transactions {
+		fmt.Println(
+			transaction.ID,
+			transaction.Account,
+			transaction.Type,
+			transaction.Amount,
+			transaction.Description,
+		)
+	}
 }
