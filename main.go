@@ -5,10 +5,17 @@ import (
 	"fmt"
 )
 
+type TransactionType string
+
+const (
+	Deposit    TransactionType = "DEPOSIT"
+	Withdrawal TransactionType = "WITHDRAWAL"
+)
+
 type Transaction struct {
 	ID          string
 	Account     string
-	Type        string
+	Type        TransactionType
 	Amount      float64
 	Description string
 }
@@ -18,21 +25,21 @@ func main() {
 		{
 			ID:          "TXN-001",
 			Account:     "FUND-001",
-			Type:        "DEPOSIT",
-			Amount:      -10000,
+			Type:        Deposit,
+			Amount:      10000,
 			Description: "Initial funding",
 		},
 		{
 			ID:          "TXN-002",
 			Account:     "FUND-001",
-			Type:        "WITHDRAWAL",
+			Type:        Withdrawal,
 			Amount:      2500,
 			Description: "Management fee",
 		},
 		{
 			ID:          "TXN-003",
 			Account:     "FUND-001",
-			Type:        "DEPOSIT",
+			Type:        Deposit,
 			Amount:      5000,
 			Description: "Additional funding",
 		},
@@ -80,7 +87,7 @@ func validateTransaction(transaction Transaction) error {
 		return errors.New("account is required")
 	}
 
-	if transaction.Type != "DEPOSIT" && transaction.Type != "WITHDRAWAL" {
+	if transaction.Type != Deposit && transaction.Type != Withdrawal {
 		return errors.New("transaction type must be DEPOSIT or WITHDRAWAL")
 	}
 
@@ -95,11 +102,11 @@ func calculateBalance(transactions []Transaction) float64 {
 	var balance float64
 
 	for _, transaction := range transactions {
-		if transaction.Type == "DEPOSIT" {
+		if transaction.Type == Deposit {
 			balance += transaction.Amount
 		}
 
-		if transaction.Type == "WITHDRAWAL" {
+		if transaction.Type == Withdrawal {
 			balance -= transaction.Amount
 		}
 	}
