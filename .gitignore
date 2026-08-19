@@ -1,0 +1,17 @@
+# Go binaries
+ledgerlite
+ledgerlite.exe
+
+# Test binaries
+*.test
+
+# Coverage output
+coverage.out
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# Operating system files
+.DS_Store
+Thumbs.db
