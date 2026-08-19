@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Transaction struct {
 	ID          string
@@ -16,7 +19,7 @@ func main() {
 			ID:          "TXN-001",
 			Account:     "FUND-001",
 			Type:        "DEPOSIT",
-			Amount:      10000,
+			Amount:      -10000,
 			Description: "Initial funding",
 		},
 		{
@@ -33,6 +36,15 @@ func main() {
 			Amount:      5000,
 			Description: "Additional funding",
 		},
+	}
+
+	for _, transaction := range transactions {
+		err := validateTransaction(transaction)
+		if err != nil {
+			fmt.Println("Invalid transaction:", transaction.ID)
+			fmt.Println("Reason:", err)
+			return
+		}
 	}
 
 	balance := calculateBalance(transactions)
@@ -57,6 +69,26 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("Balance:", balance)
+}
+
+func validateTransaction(transaction Transaction) error {
+	if transaction.ID == "" {
+		return errors.New("transaction ID is required")
+	}
+
+	if transaction.Account == "" {
+		return errors.New("account is required")
+	}
+
+	if transaction.Type != "DEPOSIT" && transaction.Type != "WITHDRAWAL" {
+		return errors.New("transaction type must be DEPOSIT or WITHDRAWAL")
+	}
+
+	if transaction.Amount <= 0 {
+		return errors.New("transaction amount must be greater than zero")
+	}
+
+	return nil
 }
 
 func calculateBalance(transactions []Transaction) float64 {
