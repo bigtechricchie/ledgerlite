@@ -123,11 +123,18 @@ func validateTransaction(transaction Transaction) error {
 
 func validateLedger(account Account, transactions []Transaction) error {
 	var balance int64
+	seenTransactionIDs := map[string]bool{}
 
 	for _, transaction := range transactions {
 		if transaction.AccountID != account.ID {
 			return errors.New("transaction belongs to a different account")
 		}
+
+		if seenTransactionIDs[transaction.ID] {
+			return errors.New("duplicate transaction ID")
+		}
+
+		seenTransactionIDs[transaction.ID] = true
 
 		if transaction.Type == Deposit {
 			balance += transaction.Amount
