@@ -12,33 +12,43 @@ const (
 	Withdrawal TransactionType = "WITHDRAWAL"
 )
 
+type Account struct {
+	ID   string
+	Name string
+}
+
 type Transaction struct {
 	ID          string
-	Account     string
+	AccountID   string
 	Type        TransactionType
 	Amount      int64
 	Description string
 }
 
 func main() {
+	account := Account{
+		ID:   "FUND-001",
+		Name: "Global Macro Fund",
+	}
+
 	transactions := []Transaction{
 		{
 			ID:          "TXN-001",
-			Account:     "FUND-001",
+			AccountID:   account.ID,
 			Type:        Deposit,
 			Amount:      1000000,
 			Description: "Initial funding",
 		},
 		{
 			ID:          "TXN-002",
-			Account:     "FUND-001",
+			AccountID:   account.ID,
 			Type:        Withdrawal,
 			Amount:      250000,
 			Description: "Management fee",
 		},
 		{
 			ID:          "TXN-003",
-			Account:     "FUND-001",
+			AccountID:   account.ID,
 			Type:        Deposit,
 			Amount:      500000,
 			Description: "Additional funding",
@@ -67,6 +77,12 @@ func main() {
 	fmt.Println("Simple Banking Ledger")
 	fmt.Println()
 
+	fmt.Println("Account")
+	fmt.Println("-------")
+	fmt.Println("ID:", account.ID)
+	fmt.Println("Name:", account.Name)
+	fmt.Println()
+
 	fmt.Println("Transactions")
 	fmt.Println("------------")
 	fmt.Println("Number of transactions:", len(transactions))
@@ -74,7 +90,7 @@ func main() {
 	for _, transaction := range transactions {
 		fmt.Println(
 			transaction.ID,
-			transaction.Account,
+			transaction.AccountID,
 			transaction.Type,
 			formatAmount(transaction.Amount),
 			transaction.Description,
@@ -90,8 +106,8 @@ func validateTransaction(transaction Transaction) error {
 		return errors.New("transaction ID is required")
 	}
 
-	if transaction.Account == "" {
-		return errors.New("account is required")
+	if transaction.AccountID == "" {
+		return errors.New("account ID is required")
 	}
 
 	if transaction.Type != Deposit && transaction.Type != Withdrawal {
