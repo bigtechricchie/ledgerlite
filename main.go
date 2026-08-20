@@ -73,32 +73,7 @@ func main() {
 
 	balance := calculateBalance(transactions)
 
-	fmt.Println("LedgerLite")
-	fmt.Println("Simple Banking Ledger")
-	fmt.Println()
-
-	fmt.Println("Account")
-	fmt.Println("-------")
-	fmt.Println("ID:", account.ID)
-	fmt.Println("Name:", account.Name)
-	fmt.Println()
-
-	fmt.Println("Transactions")
-	fmt.Println("------------")
-	fmt.Println("Number of transactions:", len(transactions))
-
-	for _, transaction := range transactions {
-		fmt.Println(
-			transaction.ID,
-			transaction.AccountID,
-			transaction.Type,
-			formatAmount(transaction.Amount),
-			transaction.Description,
-		)
-	}
-
-	fmt.Println()
-	fmt.Println("Balance:", formatAmount(balance))
+	printReport(account, transactions, balance)
 }
 
 func validateTransaction(transaction Transaction) error {
@@ -166,6 +141,43 @@ func calculateBalance(transactions []Transaction) int64 {
 	}
 
 	return balance
+}
+
+func printReport(account Account, transactions []Transaction, balance int64) {
+	fmt.Println("LedgerLite")
+	fmt.Println("Simple Banking Ledger")
+	fmt.Println()
+
+	printAccount(account)
+	printTransactions(transactions)
+
+	fmt.Println("Balance:", formatAmount(balance))
+}
+
+func printAccount(account Account) {
+	fmt.Println("Account")
+	fmt.Println("-------")
+	fmt.Println("ID:", account.ID)
+	fmt.Println("Name:", account.Name)
+	fmt.Println()
+}
+
+func printTransactions(transactions []Transaction) {
+	fmt.Println("Transactions")
+	fmt.Println("------------")
+	fmt.Println("Number of transactions:", len(transactions))
+
+	for _, transaction := range transactions {
+		fmt.Println(
+			transaction.ID,
+			transaction.AccountID,
+			transaction.Type,
+			formatAmount(transaction.Amount),
+			transaction.Description,
+		)
+	}
+
+	fmt.Println()
 }
 
 func formatAmount(amount int64) string {
