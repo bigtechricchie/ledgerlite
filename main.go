@@ -54,6 +54,13 @@ func main() {
 		}
 	}
 
+	err := validateLedger(transactions)
+	if err != nil {
+		fmt.Println("Invalid ledger")
+		fmt.Println("Reason:", err)
+		return
+	}
+
 	balance := calculateBalance(transactions)
 
 	fmt.Println("LedgerLite")
@@ -93,6 +100,26 @@ func validateTransaction(transaction Transaction) error {
 
 	if transaction.Amount <= 0 {
 		return errors.New("transaction amount must be greater than zero")
+	}
+
+	return nil
+}
+
+func validateLedger(transactions []Transaction) error {
+	var balance int64
+
+	for _, transaction := range transactions {
+		if transaction.Type == Deposit {
+			balance += transaction.Amount
+		}
+
+		if transaction.Type == Withdrawal {
+			if transaction.Amount > balance {
+				return errors.New("withdrawal exceeds available balance")
+			}
+
+			balance -= transaction.Amount
+		}
 	}
 
 	return nil
