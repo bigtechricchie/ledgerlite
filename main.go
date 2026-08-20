@@ -16,7 +16,7 @@ type Transaction struct {
 	ID          string
 	Account     string
 	Type        TransactionType
-	Amount      float64
+	Amount      int64
 	Description string
 }
 
@@ -26,21 +26,21 @@ func main() {
 			ID:          "TXN-001",
 			Account:     "FUND-001",
 			Type:        Deposit,
-			Amount:      10000,
+			Amount:      1000000,
 			Description: "Initial funding",
 		},
 		{
 			ID:          "TXN-002",
 			Account:     "FUND-001",
 			Type:        Withdrawal,
-			Amount:      2500,
+			Amount:      250000,
 			Description: "Management fee",
 		},
 		{
 			ID:          "TXN-003",
 			Account:     "FUND-001",
 			Type:        Deposit,
-			Amount:      5000,
+			Amount:      500000,
 			Description: "Additional funding",
 		},
 	}
@@ -69,13 +69,13 @@ func main() {
 			transaction.ID,
 			transaction.Account,
 			transaction.Type,
-			transaction.Amount,
+			formatAmount(transaction.Amount),
 			transaction.Description,
 		)
 	}
 
 	fmt.Println()
-	fmt.Println("Balance:", balance)
+	fmt.Println("Balance:", formatAmount(balance))
 }
 
 func validateTransaction(transaction Transaction) error {
@@ -98,8 +98,8 @@ func validateTransaction(transaction Transaction) error {
 	return nil
 }
 
-func calculateBalance(transactions []Transaction) float64 {
-	var balance float64
+func calculateBalance(transactions []Transaction) int64 {
+	var balance int64
 
 	for _, transaction := range transactions {
 		if transaction.Type == Deposit {
@@ -112,4 +112,11 @@ func calculateBalance(transactions []Transaction) float64 {
 	}
 
 	return balance
+}
+
+func formatAmount(amount int64) string {
+	pounds := amount / 100
+	pence := amount % 100
+
+	return fmt.Sprintf("£%d.%02d", pounds, pence)
 }
