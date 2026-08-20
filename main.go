@@ -64,7 +64,7 @@ func main() {
 		}
 	}
 
-	err := validateLedger(transactions)
+	err := validateLedger(account, transactions)
 	if err != nil {
 		fmt.Println("Invalid ledger")
 		fmt.Println("Reason:", err)
@@ -121,10 +121,14 @@ func validateTransaction(transaction Transaction) error {
 	return nil
 }
 
-func validateLedger(transactions []Transaction) error {
+func validateLedger(account Account, transactions []Transaction) error {
 	var balance int64
 
 	for _, transaction := range transactions {
+		if transaction.AccountID != account.ID {
+			return errors.New("transaction belongs to a different account")
+		}
+
 		if transaction.Type == Deposit {
 			balance += transaction.Amount
 		}
