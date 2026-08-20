@@ -71,9 +71,56 @@ func main() {
 		return
 	}
 
-	balance := calculateBalance(transactions)
+	runMenu(account, transactions)
+}
 
-	printReport(account, transactions, balance)
+func runMenu(account Account, transactions []Transaction) {
+	shouldContinue := true
+
+	for shouldContinue {
+		printMenu()
+
+		var option string
+		fmt.Scanln(&option)
+
+		fmt.Println()
+
+		switch option {
+		case "1":
+			printAccount(account)
+
+		case "2":
+			printTransactions(transactions)
+
+		case "3":
+			balance := calculateBalance(transactions)
+			printBalance(balance)
+
+		case "4":
+			balance := calculateBalance(transactions)
+			printReport(account, transactions, balance)
+
+		case "q":
+			shouldContinue = false
+
+		default:
+			fmt.Println("Unknown option")
+			fmt.Println()
+		}
+	}
+}
+
+func printMenu() {
+	fmt.Println("LedgerLite")
+	fmt.Println("Simple Banking Ledger")
+	fmt.Println()
+	fmt.Println("[1] View account")
+	fmt.Println("[2] View transactions")
+	fmt.Println("[3] View balance")
+	fmt.Println("[4] View full report")
+	fmt.Println("[q] Quit")
+	fmt.Println()
+	fmt.Print("Select an option: ")
 }
 
 func validateTransaction(transaction Transaction) error {
@@ -150,8 +197,7 @@ func printReport(account Account, transactions []Transaction, balance int64) {
 
 	printAccount(account)
 	printTransactions(transactions)
-
-	fmt.Println("Balance:", formatAmount(balance))
+	printBalance(balance)
 }
 
 func printAccount(account Account) {
@@ -177,6 +223,13 @@ func printTransactions(transactions []Transaction) {
 		)
 	}
 
+	fmt.Println()
+}
+
+func printBalance(balance int64) {
+	fmt.Println("Balance")
+	fmt.Println("-------")
+	fmt.Println(formatAmount(balance))
 	fmt.Println()
 }
 
