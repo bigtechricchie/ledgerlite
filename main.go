@@ -81,7 +81,13 @@ func runMenu(account Account, transactions []Transaction) {
 		printMenu()
 
 		var option string
-		fmt.Scanln(&option)
+
+		_, err := fmt.Scanln(&option)
+		if err != nil {
+			fmt.Println()
+			fmt.Println("Input stream closed.")
+			return
+		}
 
 		fmt.Println()
 
