@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"strconv"
+	"strings"
 )
 
 type TransactionType string
@@ -71,18 +76,18 @@ func main() {
 		return
 	}
 
-	runMenu(account, transactions)
+	reader := bufio.NewReader(os.Stdin)
+
+	runMenu(reader, account, transactions)
 }
 
-func runMenu(account Account, transactions []Transaction) {
+func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) {
 	shouldContinue := true
 
 	for shouldContinue {
 		printMenu()
 
-		var option string
-
-		_, err := fmt.Scanln(&option)
+		option, err := readLine(reader)
 		if err != nil {
 			fmt.Println()
 			fmt.Println("Input stream closed.")
@@ -107,7 +112,7 @@ func runMenu(account Account, transactions []Transaction) {
 			printReport(account, transactions, balance)
 
 		case "5":
-			transaction, err := createDeposit(account)
+			transaction, err := createDeposit(reader, account)
 			if err != nil {
 				fmt.Println("Could not record deposit")
 				fmt.Println("Reason:", err)
@@ -154,25 +159,29 @@ func printMenu() {
 	fmt.Print("Select an option: ")
 }
 
-func createDeposit(account Account) (Transaction, error) {
-	var transactionID string
-	var amount int64
-	var description string
-
+func createDeposit(reader *bufio.Reader, account Account) (Transaction, error) {
 	fmt.Print("Transaction ID: ")
-	_, err := fmt.Scanln(&transactionID)
+
+	transactionID, err := readLine(reader)
 	if err != nil {
 		return Transaction{}, errors.New("could not read transaction ID")
 	}
 
 	fmt.Print("Amount in pence: ")
-	_, err = fmt.Scanln(&amount)
+
+	rawAmount, err := readLine(reader)
 	if err != nil {
 		return Transaction{}, errors.New("could not read transaction amount")
 	}
 
+	amount, err := strconv.ParseInt(rawAmount, 10, 64)
+	if err != nil {
+		return Transaction{}, errors.New("transaction amount must be a whole number of pence")
+	}
+
 	fmt.Print("Description: ")
-	_, err = fmt.Scanln(&description)
+
+	description, err := readLine(reader)
 	if err != nil {
 		return Transaction{}, errors.New("could not read transaction description")
 	}
@@ -308,4 +317,20 @@ func formatAmount(amount int64) string {
 	pence := amount % 100
 
 	return fmt.Sprintf("£%d.%02d", pounds, pence)
+}
+
+func readLine(reader *bufio.Reader) (string, error) {
+	input, err := reader.ReadString('\n')
+
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	input = strings.TrimSpace(input)
+
+	if err == io.EOF && input == "" {
+		return "", io.EOF
+	}
+
+	return input, nil
 }
