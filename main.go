@@ -100,6 +100,30 @@ func runMenu(account Account, transactions []Transaction) {
 			balance := calculateBalance(transactions)
 			printReport(account, transactions, balance)
 
+		case "5":
+			transaction, err := createDeposit(account)
+			if err != nil {
+				fmt.Println("Could not record deposit")
+				fmt.Println("Reason:", err)
+				fmt.Println()
+				continue
+			}
+
+			updatedTransactions := append(transactions, transaction)
+
+			err = validateLedger(account, updatedTransactions)
+			if err != nil {
+				fmt.Println("Could not record deposit")
+				fmt.Println("Reason:", err)
+				fmt.Println()
+				continue
+			}
+
+			transactions = updatedTransactions
+
+			fmt.Println("Deposit recorded.")
+			fmt.Println()
+
 		case "q":
 			shouldContinue = false
 
@@ -118,6 +142,7 @@ func printMenu() {
 	fmt.Println("[2] View transactions")
 	fmt.Println("[3] View balance")
 	fmt.Println("[4] View full report")
+	fmt.Println("[5] Record deposit")
 	fmt.Println("[q] Quit")
 	fmt.Println()
 	fmt.Print("Select an option: ")
@@ -238,4 +263,34 @@ func formatAmount(amount int64) string {
 	pence := amount % 100
 
 	return fmt.Sprintf("£%d.%02d", pounds, pence)
+}
+
+func createDeposit(account Account) (Transaction, error) {
+	var transactionID string
+	var amount int64
+	var description string
+
+	fmt.Print("Transaction ID: ")
+	fmt.Scanln(&transactionID)
+
+	fmt.Print("Amount in pence: ")
+	fmt.Scanln(&amount)
+
+	fmt.Print("Description: ")
+	fmt.Scanln(&description)
+
+	transaction := Transaction{
+		ID:          transactionID,
+		AccountID:   account.ID,
+		Type:        Deposit,
+		Amount:      amount,
+		Description: description,
+	}
+
+	err := validateTransaction(transaction)
+	if err != nil {
+		return Transaction{}, err
+	}
+
+	return transaction, nil
 }
