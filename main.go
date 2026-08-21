@@ -154,6 +154,45 @@ func printMenu() {
 	fmt.Print("Select an option: ")
 }
 
+func createDeposit(account Account) (Transaction, error) {
+	var transactionID string
+	var amount int64
+	var description string
+
+	fmt.Print("Transaction ID: ")
+	_, err := fmt.Scanln(&transactionID)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction ID")
+	}
+
+	fmt.Print("Amount in pence: ")
+	_, err = fmt.Scanln(&amount)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction amount")
+	}
+
+	fmt.Print("Description: ")
+	_, err = fmt.Scanln(&description)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction description")
+	}
+
+	transaction := Transaction{
+		ID:          transactionID,
+		AccountID:   account.ID,
+		Type:        Deposit,
+		Amount:      amount,
+		Description: description,
+	}
+
+	err = validateTransaction(transaction)
+	if err != nil {
+		return Transaction{}, err
+	}
+
+	return transaction, nil
+}
+
 func validateTransaction(transaction Transaction) error {
 	if transaction.ID == "" {
 		return errors.New("transaction ID is required")
@@ -269,34 +308,4 @@ func formatAmount(amount int64) string {
 	pence := amount % 100
 
 	return fmt.Sprintf("£%d.%02d", pounds, pence)
-}
-
-func createDeposit(account Account) (Transaction, error) {
-	var transactionID string
-	var amount int64
-	var description string
-
-	fmt.Print("Transaction ID: ")
-	fmt.Scanln(&transactionID)
-
-	fmt.Print("Amount in pence: ")
-	fmt.Scanln(&amount)
-
-	fmt.Print("Description: ")
-	fmt.Scanln(&description)
-
-	transaction := Transaction{
-		ID:          transactionID,
-		AccountID:   account.ID,
-		Type:        Deposit,
-		Amount:      amount,
-		Description: description,
-	}
-
-	err := validateTransaction(transaction)
-	if err != nil {
-		return Transaction{}, err
-	}
-
-	return transaction, nil
 }
