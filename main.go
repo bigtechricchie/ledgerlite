@@ -112,7 +112,11 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			printReport(account, transactions, balance)
 
 		case "5":
-			transaction, err := createDeposit(reader, account)
+			transaction, err := createTransaction(
+				reader,
+				account,
+				Deposit,
+			)
 			if err != nil {
 				fmt.Println("Could not record deposit")
 				fmt.Println("Reason:", err)
@@ -136,7 +140,11 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			fmt.Println()
 
 		case "6":
-			transaction, err := createWithdrawal(reader, account)
+			transaction, err := createTransaction(
+				reader,
+				account,
+				Withdrawal,
+			)
 			if err != nil {
 				fmt.Println("Could not record withdrawal")
 				fmt.Println("Reason:", err)
@@ -184,80 +192,49 @@ func printMenu() {
 	fmt.Print("Select an option: ")
 }
 
-func createDeposit(reader *bufio.Reader, account Account) (Transaction, error) {
+func createTransaction(
+	reader *bufio.Reader,
+	account Account,
+	transactionType TransactionType,
+) (Transaction, error) {
 	fmt.Print("Transaction ID: ")
 
 	transactionID, err := readLine(reader)
 	if err != nil {
-		return Transaction{}, errors.New("could not read transaction ID")
+		return Transaction{}, errors.New(
+			"could not read transaction ID",
+		)
 	}
 
 	fmt.Print("Amount in pence: ")
 
 	rawAmount, err := readLine(reader)
 	if err != nil {
-		return Transaction{}, errors.New("could not read transaction amount")
+		return Transaction{}, errors.New(
+			"could not read transaction amount",
+		)
 	}
 
 	amount, err := strconv.ParseInt(rawAmount, 10, 64)
 	if err != nil {
-		return Transaction{}, errors.New("transaction amount must be a whole number of pence")
+		return Transaction{}, errors.New(
+			"transaction amount must be a whole number of pence",
+		)
 	}
 
 	fmt.Print("Description: ")
 
 	description, err := readLine(reader)
 	if err != nil {
-		return Transaction{}, errors.New("could not read transaction description")
+		return Transaction{}, errors.New(
+			"could not read transaction description",
+		)
 	}
 
 	transaction := Transaction{
 		ID:          transactionID,
 		AccountID:   account.ID,
-		Type:        Deposit,
-		Amount:      amount,
-		Description: description,
-	}
-
-	err = validateTransaction(transaction)
-	if err != nil {
-		return Transaction{}, err
-	}
-
-	return transaction, nil
-}
-
-func createWithdrawal(reader *bufio.Reader, account Account) (Transaction, error) {
-	fmt.Print("Transaction ID: ")
-
-	transactionID, err := readLine(reader)
-	if err != nil {
-		return Transaction{}, errors.New("could not read transaction ID")
-	}
-
-	fmt.Print("Amount in pence: ")
-
-	rawAmount, err := readLine(reader)
-	if err != nil {
-		return Transaction{}, errors.New("could not read transaction amount")
-	}
-
-	amount, err := strconv.ParseInt(rawAmount, 10, 64)
-	if err != nil {
-		return Transaction{}, errors.New("transaction amount must be a whole number of pence")
-	}
-
-	fmt.Print("Description: ")
-
-	description, err := readLine(reader)
-	if err != nil {
-		return Transaction{}, errors.New("could not read transaction description")
-	}
-
-	transaction := Transaction{
-		ID:          transactionID,
-		AccountID:   account.ID,
-		Type:        Withdrawal,
+		Type:        transactionType,
 		Amount:      amount,
 		Description: description,
 	}
