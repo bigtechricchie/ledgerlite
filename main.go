@@ -124,17 +124,17 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			updatedTransactions := append(transactions, transaction)
-
-			err = validateLedger(account, updatedTransactions)
+			transactions, err = addTransaction(
+				account,
+				transactions,
+				transaction,
+			)
 			if err != nil {
 				fmt.Println("Could not record deposit")
 				fmt.Println("Reason:", err)
 				fmt.Println()
 				continue
 			}
-
-			transactions = updatedTransactions
 
 			fmt.Println("Deposit recorded.")
 			fmt.Println()
@@ -152,17 +152,17 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			updatedTransactions := append(transactions, transaction)
-
-			err = validateLedger(account, updatedTransactions)
+			transactions, err = addTransaction(
+				account,
+				transactions,
+				transaction,
+			)
 			if err != nil {
 				fmt.Println("Could not record withdrawal")
 				fmt.Println("Reason:", err)
 				fmt.Println()
 				continue
 			}
-
-			transactions = updatedTransactions
 
 			fmt.Println("Withdrawal recorded.")
 			fmt.Println()
@@ -265,6 +265,26 @@ func validateTransaction(transaction Transaction) error {
 	}
 
 	return nil
+}
+
+func addTransaction(
+	account Account,
+	transactions []Transaction,
+	transaction Transaction,
+) ([]Transaction, error) {
+	err := validateTransaction(transaction)
+	if err != nil {
+		return transactions, err
+	}
+
+	updatedTransactions := append(transactions, transaction)
+
+	err = validateLedger(account, updatedTransactions)
+	if err != nil {
+		return transactions, err
+	}
+
+	return updatedTransactions, nil
 }
 
 func validateLedger(account Account, transactions []Transaction) error {
