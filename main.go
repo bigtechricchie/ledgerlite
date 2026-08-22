@@ -135,6 +135,30 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			fmt.Println("Deposit recorded.")
 			fmt.Println()
 
+		case "6":
+			transaction, err := createWithdrawal(reader, account)
+			if err != nil {
+				fmt.Println("Could not record withdrawal")
+				fmt.Println("Reason:", err)
+				fmt.Println()
+				continue
+			}
+
+			updatedTransactions := append(transactions, transaction)
+
+			err = validateLedger(account, updatedTransactions)
+			if err != nil {
+				fmt.Println("Could not record withdrawal")
+				fmt.Println("Reason:", err)
+				fmt.Println()
+				continue
+			}
+
+			transactions = updatedTransactions
+
+			fmt.Println("Withdrawal recorded.")
+			fmt.Println()
+
 		case "q":
 			shouldContinue = false
 
@@ -154,6 +178,7 @@ func printMenu() {
 	fmt.Println("[3] View balance")
 	fmt.Println("[4] View full report")
 	fmt.Println("[5] Record deposit")
+	fmt.Println("[6] Record withdrawal")
 	fmt.Println("[q] Quit")
 	fmt.Println()
 	fmt.Print("Select an option: ")
@@ -190,6 +215,49 @@ func createDeposit(reader *bufio.Reader, account Account) (Transaction, error) {
 		ID:          transactionID,
 		AccountID:   account.ID,
 		Type:        Deposit,
+		Amount:      amount,
+		Description: description,
+	}
+
+	err = validateTransaction(transaction)
+	if err != nil {
+		return Transaction{}, err
+	}
+
+	return transaction, nil
+}
+
+func createWithdrawal(reader *bufio.Reader, account Account) (Transaction, error) {
+	fmt.Print("Transaction ID: ")
+
+	transactionID, err := readLine(reader)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction ID")
+	}
+
+	fmt.Print("Amount in pence: ")
+
+	rawAmount, err := readLine(reader)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction amount")
+	}
+
+	amount, err := strconv.ParseInt(rawAmount, 10, 64)
+	if err != nil {
+		return Transaction{}, errors.New("transaction amount must be a whole number of pence")
+	}
+
+	fmt.Print("Description: ")
+
+	description, err := readLine(reader)
+	if err != nil {
+		return Transaction{}, errors.New("could not read transaction description")
+	}
+
+	transaction := Transaction{
+		ID:          transactionID,
+		AccountID:   account.ID,
+		Type:        Withdrawal,
 		Amount:      amount,
 		Description: description,
 	}
