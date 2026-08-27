@@ -412,3 +412,83 @@ func TestAddTransactionRejectsWithdrawalExceedingBalance(t *testing.T) {
 		)
 	}
 }
+
+func TestFindTransactionByID(t *testing.T) {
+	transactions := []Transaction{
+		{
+			ID:        "TXN-001",
+			AccountID: "FUND-001",
+			Type:      Deposit,
+			Amount:    100000,
+		},
+		{
+			ID:        "TXN-002",
+			AccountID: "FUND-001",
+			Type:      Withdrawal,
+			Amount:    25000,
+		},
+	}
+
+	tests := []struct {
+		name          string
+		transactionID string
+		expectedID    string
+		expectedError string
+	}{
+		{
+			name:          "existing transaction",
+			transactionID: "TXN-002",
+			expectedID:    "TXN-002",
+			expectedError: "",
+		},
+		{
+			name:          "missing transaction",
+			transactionID: "TXN-999",
+			expectedID:    "",
+			expectedError: "transaction not found",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			transaction, err := findTransactionByID(
+				transactions,
+				test.transactionID,
+			)
+
+			if test.expectedError != "" {
+				if err == nil {
+					t.Fatalf(
+						"expected error %q, got nil",
+						test.expectedError,
+					)
+				}
+
+				if err.Error() != test.expectedError {
+					t.Errorf(
+						"expected error %q, got %q",
+						test.expectedError,
+						err.Error(),
+					)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf(
+					"expected transaction to be found, got error: %v",
+					err,
+				)
+			}
+
+			if transaction.ID != test.expectedID {
+				t.Errorf(
+					"expected transaction ID %q, got %q",
+					test.expectedID,
+					transaction.ID,
+				)
+			}
+		})
+	}
+}

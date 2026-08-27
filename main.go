@@ -167,6 +167,34 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			fmt.Println("Withdrawal recorded.")
 			fmt.Println()
 
+		case "7":
+			fmt.Print("Transaction ID: ")
+
+			transactionID, err := readLine(reader)
+			if err != nil {
+				fmt.Println()
+				fmt.Println("Could not read transaction ID")
+				fmt.Println()
+				continue
+			}
+
+			transaction, err := findTransactionByID(
+				transactions,
+				transactionID,
+			)
+			if err != nil {
+				fmt.Println("Could not find transaction")
+				fmt.Println("Reason:", err)
+				fmt.Println()
+				continue
+			}
+
+			fmt.Println()
+			fmt.Println("Transaction")
+			fmt.Println("-----------")
+			printTransaction(transaction)
+			fmt.Println()
+
 		case "q":
 			shouldContinue = false
 
@@ -187,9 +215,23 @@ func printMenu() {
 	fmt.Println("[4] View full report")
 	fmt.Println("[5] Record deposit")
 	fmt.Println("[6] Record withdrawal")
+	fmt.Println("[7] Find transaction by ID")
 	fmt.Println("[q] Quit")
 	fmt.Println()
 	fmt.Print("Select an option: ")
+}
+
+func findTransactionByID(
+	transactions []Transaction,
+	transactionID string,
+) (Transaction, error) {
+	for _, transaction := range transactions {
+		if transaction.ID == transactionID {
+			return transaction, nil
+		}
+	}
+
+	return Transaction{}, errors.New("transaction not found")
 }
 
 func createTransaction(
@@ -358,16 +400,20 @@ func printTransactions(transactions []Transaction) {
 	fmt.Println("Number of transactions:", len(transactions))
 
 	for _, transaction := range transactions {
-		fmt.Println(
-			transaction.ID,
-			transaction.AccountID,
-			transaction.Type,
-			formatAmount(transaction.Amount),
-			transaction.Description,
-		)
+		printTransaction(transaction)
 	}
 
 	fmt.Println()
+}
+
+func printTransaction(transaction Transaction) {
+	fmt.Println(
+		transaction.ID,
+		transaction.AccountID,
+		transaction.Type,
+		formatAmount(transaction.Amount),
+		transaction.Description,
+	)
 }
 
 func printBalance(balance int64) {
