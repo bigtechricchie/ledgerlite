@@ -36,6 +36,13 @@ func main() {
 		Name: "Global Macro Fund",
 	}
 
+	err := validateAccount(account)
+	if err != nil {
+		fmt.Println("Invalid account")
+		fmt.Println("Reason:", err)
+		return
+	}
+
 	transactions := []Transaction{
 		{
 			ID:          "TXN-001",
@@ -69,7 +76,7 @@ func main() {
 		}
 	}
 
-	err := validateLedger(account, transactions)
+	err = validateLedger(account, transactions)
 	if err != nil {
 		fmt.Println("Invalid ledger")
 		fmt.Println("Reason:", err)
@@ -221,6 +228,18 @@ func printMenu() {
 	fmt.Print("Select an option: ")
 }
 
+func validateAccount(account Account) error {
+	if account.ID == "" {
+		return errors.New("account ID is required")
+	}
+
+	if account.Name == "" {
+		return errors.New("account name is required")
+	}
+
+	return nil
+}
+
 func findTransactionByID(
 	transactions []Transaction,
 	transactionID string,
@@ -330,6 +349,11 @@ func addTransaction(
 }
 
 func validateLedger(account Account, transactions []Transaction) error {
+	err := validateAccount(account)
+	if err != nil {
+		return err
+	}
+
 	var balance int64
 	seenTransactionIDs := map[string]bool{}
 

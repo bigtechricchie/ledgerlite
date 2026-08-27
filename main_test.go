@@ -2,6 +2,72 @@ package main
 
 import "testing"
 
+func TestValidateAccount(t *testing.T) {
+
+	tests := []struct {
+		name          string
+		account       Account
+		expectedError string
+	}{
+		{
+			name: "valid account",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
+			expectedError: "",
+		},
+		{
+			name: "missing account ID",
+			account: Account{
+				ID:   "",
+				Name: "Global Macro Fund",
+			},
+			expectedError: "account ID is required",
+		},
+		{
+			name: "missing account name",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "",
+			},
+			expectedError: "account name is required",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := validateAccount(test.account)
+
+			if test.expectedError == "" {
+				if err != nil {
+					t.Errorf(
+						"expected account to be valid, got error: %v",
+						err,
+					)
+				}
+
+				return
+			}
+
+			if err == nil {
+				t.Fatalf(
+					"expected error %q, got nil",
+					test.expectedError,
+				)
+			}
+
+			if err.Error() != test.expectedError {
+				t.Errorf(
+					"expected error %q, got %q",
+					test.expectedError,
+					err.Error(),
+				)
+			}
+		})
+	}
+}
+
 func TestCalculateBalance(t *testing.T) {
 	transactions := []Transaction{
 		{
@@ -143,28 +209,28 @@ func TestValidateTransaction(t *testing.T) {
 }
 
 func TestValidateLedger(t *testing.T) {
-	account := Account{
-		ID:   "FUND-001",
-		Name: "Global Macro Fund",
-	}
-
 	tests := []struct {
 		name          string
 		transactions  []Transaction
+		account       Account
 		expectedError string
 	}{
 		{
 			name: "valid ledger",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
 			transactions: []Transaction{
 				{
 					ID:        "TXN-001",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Deposit,
 					Amount:    100000,
 				},
 				{
 					ID:        "TXN-002",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Withdrawal,
 					Amount:    25000,
 				},
@@ -173,16 +239,20 @@ func TestValidateLedger(t *testing.T) {
 		},
 		{
 			name: "duplicate transaction ID",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
 			transactions: []Transaction{
 				{
 					ID:        "TXN-001",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Deposit,
 					Amount:    100000,
 				},
 				{
 					ID:        "TXN-001",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Deposit,
 					Amount:    50000,
 				},
@@ -191,6 +261,10 @@ func TestValidateLedger(t *testing.T) {
 		},
 		{
 			name: "transaction belongs to different account",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
 			transactions: []Transaction{
 				{
 					ID:        "TXN-001",
@@ -203,16 +277,20 @@ func TestValidateLedger(t *testing.T) {
 		},
 		{
 			name: "withdrawal exceeds balance",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
 			transactions: []Transaction{
 				{
 					ID:        "TXN-001",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Deposit,
 					Amount:    100000,
 				},
 				{
 					ID:        "TXN-002",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Withdrawal,
 					Amount:    100001,
 				},
@@ -221,27 +299,49 @@ func TestValidateLedger(t *testing.T) {
 		},
 		{
 			name: "withdrawal equals full balance",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
 			transactions: []Transaction{
 				{
 					ID:        "TXN-001",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Deposit,
 					Amount:    100000,
 				},
 				{
 					ID:        "TXN-002",
-					AccountID: account.ID,
+					AccountID: "FUND-001",
 					Type:      Withdrawal,
 					Amount:    100000,
 				},
 			},
 			expectedError: "",
 		},
+		{
+			name: "missing account ID",
+			account: Account{
+				ID:   "",
+				Name: "Global Macro Fund",
+			},
+			transactions:  []Transaction{},
+			expectedError: "account ID is required",
+		},
+		{
+			name: "missing account name",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "",
+			},
+			transactions:  []Transaction{},
+			expectedError: "account name is required",
+		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := validateLedger(account, test.transactions)
+			err := validateLedger(test.account, test.transactions)
 
 			if test.expectedError == "" {
 				if err != nil {
