@@ -122,6 +122,7 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			transaction, err := createTransaction(
 				reader,
 				account,
+				transactions,
 				Deposit,
 			)
 			if err != nil {
@@ -143,13 +144,17 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			fmt.Println("Deposit recorded.")
+			fmt.Println(
+				"Deposit recorded:",
+				transaction.ID,
+			)
 			fmt.Println()
 
 		case "6":
 			transaction, err := createTransaction(
 				reader,
 				account,
+				transactions,
 				Withdrawal,
 			)
 			if err != nil {
@@ -171,7 +176,10 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			fmt.Println("Withdrawal recorded.")
+			fmt.Println(
+				"Withdrawal recorded:",
+				transaction.ID,
+			)
 			fmt.Println()
 
 		case "7":
@@ -240,6 +248,22 @@ func validateAccount(account Account) error {
 	return nil
 }
 
+func nextTransactionID(transactions []Transaction) string {
+	usedIDs := map[string]bool{}
+
+	for _, transaction := range transactions {
+		usedIDs[transaction.ID] = true
+	}
+
+	for number := 1; ; number++ {
+		transactionID := fmt.Sprintf("TXN-%03d", number)
+
+		if !usedIDs[transactionID] {
+			return transactionID
+		}
+	}
+}
+
 func findTransactionByID(
 	transactions []Transaction,
 	transactionID string,
@@ -256,16 +280,10 @@ func findTransactionByID(
 func createTransaction(
 	reader *bufio.Reader,
 	account Account,
+	transactions []Transaction,
 	transactionType TransactionType,
 ) (Transaction, error) {
-	fmt.Print("Transaction ID: ")
-
-	transactionID, err := readLine(reader)
-	if err != nil {
-		return Transaction{}, errors.New(
-			"could not read transaction ID",
-		)
-	}
+	transactionID := nextTransactionID(transactions)
 
 	fmt.Print("Amount in pence: ")
 

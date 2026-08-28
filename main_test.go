@@ -592,3 +592,50 @@ func TestFindTransactionByID(t *testing.T) {
 		})
 	}
 }
+
+func TestNextTransactionID(t *testing.T) {
+	tests := []struct {
+		name         string
+		transactions []Transaction
+		expectedID   string
+	}{
+		{
+			name:         "empty ledger",
+			transactions: []Transaction{},
+			expectedID:   "TXN-001",
+		},
+		{
+			name: "next sequential ID",
+			transactions: []Transaction{
+				{ID: "TXN-001"},
+				{ID: "TXN-002"},
+				{ID: "TXN-003"},
+			},
+			expectedID: "TXN-004",
+		},
+		{
+			name: "fills first available gap",
+			transactions: []Transaction{
+				{ID: "TXN-001"},
+				{ID: "TXN-003"},
+			},
+			expectedID: "TXN-002",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			transactionID := nextTransactionID(
+				test.transactions,
+			)
+
+			if transactionID != test.expectedID {
+				t.Errorf(
+					"expected transaction ID %q, got %q",
+					test.expectedID,
+					transactionID,
+				)
+			}
+		})
+	}
+}
