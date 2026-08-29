@@ -639,3 +639,118 @@ func TestNextTransactionID(t *testing.T) {
 		})
 	}
 }
+
+func TestParseAmount(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		expectedAmount int64
+		expectedError  string
+	}{
+		{
+			name:           "whole pounds",
+			input:          "1250",
+			expectedAmount: 125000,
+			expectedError:  "",
+		},
+		{
+			name:           "pounds and pence",
+			input:          "1250.50",
+			expectedAmount: 125050,
+			expectedError:  "",
+		},
+		{
+			name:           "single decimal place",
+			input:          "1250.5",
+			expectedAmount: 125050,
+			expectedError:  "",
+		},
+		{
+			name:           "one penny",
+			input:          "0.01",
+			expectedAmount: 1,
+			expectedError:  "",
+		},
+		{
+			name:           "trailing decimal point",
+			input:          "10.",
+			expectedAmount: 1000,
+			expectedError:  "",
+		},
+		{
+			name:          "too many decimal places",
+			input:         "10.001",
+			expectedError: "transaction amount cannot have more than two decimal places",
+		},
+		{
+			name:          "multiple decimal points",
+			input:         "10.00.1",
+			expectedError: "transaction amount must be a valid currency amount",
+		},
+		{
+			name:          "non numeric input",
+			input:         "hello",
+			expectedError: "transaction amount must be a valid currency amount",
+		},
+		{
+			name:          "currency symbol",
+			input:         "£10.00",
+			expectedError: "transaction amount must be a valid currency amount",
+		},
+		{
+			name:          "negative amount",
+			input:         "-10.50",
+			expectedError: "transaction amount must be greater than zero",
+		},
+		{
+			name:          "zero amount",
+			input:         "0.00",
+			expectedError: "transaction amount must be greater than zero",
+		},
+		{
+			name:          "missing pounds",
+			input:         ".50",
+			expectedError: "transaction amount must include pounds",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			amount, err := parseAmount(test.input)
+
+			if test.expectedError != "" {
+				if err == nil {
+					t.Fatalf(
+						"expected error %q, got nil",
+						test.expectedError,
+					)
+				}
+
+				if err.Error() != test.expectedError {
+					t.Errorf(
+						"expected error %q, got %q",
+						test.expectedError,
+						err.Error(),
+					)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf(
+					"expected amount to be valid, got error: %v",
+					err,
+				)
+			}
+
+			if amount != test.expectedAmount {
+				t.Errorf(
+					"expected amount %d, got %d",
+					test.expectedAmount,
+					amount,
+				)
+			}
+		})
+	}
+}

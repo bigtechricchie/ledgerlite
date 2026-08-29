@@ -285,7 +285,7 @@ func createTransaction(
 ) (Transaction, error) {
 	transactionID := nextTransactionID(transactions)
 
-	fmt.Print("Amount in pence: ")
+	fmt.Print("Amount (£): ")
 
 	rawAmount, err := readLine(reader)
 	if err != nil {
@@ -294,11 +294,9 @@ func createTransaction(
 		)
 	}
 
-	amount, err := strconv.ParseInt(rawAmount, 10, 64)
+	amount, err := parseAmount(rawAmount)
 	if err != nil {
-		return Transaction{}, errors.New(
-			"transaction amount must be a whole number of pence",
-		)
+		return Transaction{}, err
 	}
 
 	fmt.Print("Description: ")
@@ -486,4 +484,70 @@ func readLine(reader *bufio.Reader) (string, error) {
 	}
 
 	return input, nil
+}
+
+func parseAmount(input string) (int64, error) {
+	if strings.HasPrefix(input, "-") {
+		return 0, errors.New(
+			"transaction amount must be greater than zero",
+		)
+	}
+
+	parts := strings.Split(input, ".")
+
+	if len(parts) > 2 {
+		return 0, errors.New(
+			"transaction amount must be a valid currency amount",
+		)
+	}
+
+	if parts[0] == "" {
+		return 0, errors.New(
+			"transaction amount must include pounds",
+		)
+	}
+
+	pounds, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return 0, errors.New(
+			"transaction amount must be a valid currency amount",
+		)
+	}
+
+	var pence int64
+
+	if len(parts) == 2 {
+		penceText := parts[1]
+
+		if len(penceText) == 0 {
+			penceText = "00"
+		}
+
+		if len(penceText) == 1 {
+			penceText += "0"
+		}
+
+		if len(penceText) > 2 {
+			return 0, errors.New(
+				"transaction amount cannot have more than two decimal places",
+			)
+		}
+
+		pence, err = strconv.ParseInt(penceText, 10, 64)
+		if err != nil {
+			return 0, errors.New(
+				"transaction amount must be a valid currency amount",
+			)
+		}
+	}
+
+	amount := pounds*100 + pence
+
+	if amount <= 0 {
+		return 0, errors.New(
+			"transaction amount must be greater than zero",
+		)
+	}
+
+	return amount, nil
 }
