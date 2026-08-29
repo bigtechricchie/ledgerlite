@@ -173,6 +173,28 @@ func TestValidateTransaction(t *testing.T) {
 			},
 			expectedError: "transaction amount must be greater than zero",
 		},
+		{
+			name: "missing description",
+			transaction: Transaction{
+				ID:          "TXN-001",
+				AccountID:   "FUND-001",
+				Type:        Deposit,
+				Amount:      10000,
+				Description: "",
+			},
+			expectedError: "transaction description is required",
+		},
+		{
+			name: "whitespace description",
+			transaction: Transaction{
+				ID:          "TXN-001",
+				AccountID:   "FUND-001",
+				Type:        Deposit,
+				Amount:      10000,
+				Description: "   ",
+			},
+			expectedError: "transaction description is required",
+		},
 	}
 
 	for _, test := range tests {

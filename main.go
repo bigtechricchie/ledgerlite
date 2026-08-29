@@ -341,6 +341,10 @@ func validateTransaction(transaction Transaction) error {
 		return errors.New("transaction amount must be greater than zero")
 	}
 
+	if strings.TrimSpace(transaction.Description) == "" {
+		return errors.New("transaction description is required")
+	}
+
 	return nil
 }
 
