@@ -33,7 +33,7 @@ type Transaction struct {
 func main() {
 	account := Account{
 		ID:   "FUND-001",
-		Name: "Global Macro Fund",
+		Name: "Global Opportunities Fund",
 	}
 
 	err := validateAccount(account)
@@ -48,22 +48,36 @@ func main() {
 			ID:          "TXN-001",
 			AccountID:   account.ID,
 			Type:        Deposit,
-			Amount:      1000000,
-			Description: "Initial funding",
+			Amount:      250000000,
+			Description: "Investor capital subscription",
 		},
 		{
 			ID:          "TXN-002",
 			AccountID:   account.ID,
 			Type:        Withdrawal,
-			Amount:      250000,
-			Description: "Management fee",
+			Amount:      1850000,
+			Description: "Quarterly management fee",
 		},
 		{
 			ID:          "TXN-003",
 			AccountID:   account.ID,
+			Type:        Withdrawal,
+			Amount:      725000,
+			Description: "Fund administration expense",
+		},
+		{
+			ID:          "TXN-004",
+			AccountID:   account.ID,
 			Type:        Deposit,
-			Amount:      500000,
-			Description: "Additional funding",
+			Amount:      8750000,
+			Description: "Interest income settlement",
+		},
+		{
+			ID:          "TXN-005",
+			AccountID:   account.ID,
+			Type:        Withdrawal,
+			Amount:      3200000,
+			Description: "Investor redemption payment",
 		},
 	}
 
