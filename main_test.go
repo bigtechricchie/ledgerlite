@@ -245,16 +245,18 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions: []Transaction{
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-001",
-					Type:      Deposit,
-					Amount:    100000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "Initial funding",
 				},
 				{
-					ID:        "TXN-002",
-					AccountID: "FUND-001",
-					Type:      Withdrawal,
-					Amount:    25000,
+					ID:          "TXN-002",
+					AccountID:   "FUND-001",
+					Type:        Withdrawal,
+					Amount:      25000,
+					Description: "Management fee",
 				},
 			},
 			expectedError: "",
@@ -267,16 +269,18 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions: []Transaction{
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-001",
-					Type:      Deposit,
-					Amount:    100000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "Initial funding",
 				},
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-001",
-					Type:      Deposit,
-					Amount:    50000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      50000,
+					Description: "Additional funding",
 				},
 			},
 			expectedError: "duplicate transaction ID",
@@ -289,13 +293,31 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions: []Transaction{
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-002",
-					Type:      Deposit,
-					Amount:    100000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-002",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "Initial funding",
 				},
 			},
 			expectedError: "transaction belongs to a different account",
+		},
+		{
+			name: "invalid transaction amount",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
+			transactions: []Transaction{
+				{
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      0,
+					Description: "Initial funding",
+				},
+			},
+			expectedError: "transaction amount must be greater than zero",
 		},
 		{
 			name: "withdrawal exceeds balance",
@@ -305,16 +327,18 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions: []Transaction{
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-001",
-					Type:      Deposit,
-					Amount:    100000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "Initial funding",
 				},
 				{
-					ID:        "TXN-002",
-					AccountID: "FUND-001",
-					Type:      Withdrawal,
-					Amount:    100001,
+					ID:          "TXN-002",
+					AccountID:   "FUND-001",
+					Type:        Withdrawal,
+					Amount:      100001,
+					Description: "Excessive withdrawal",
 				},
 			},
 			expectedError: "withdrawal exceeds available balance",
@@ -327,16 +351,18 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions: []Transaction{
 				{
-					ID:        "TXN-001",
-					AccountID: "FUND-001",
-					Type:      Deposit,
-					Amount:    100000,
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "Initial funding",
 				},
 				{
-					ID:        "TXN-002",
-					AccountID: "FUND-001",
-					Type:      Withdrawal,
-					Amount:    100000,
+					ID:          "TXN-002",
+					AccountID:   "FUND-001",
+					Type:        Withdrawal,
+					Amount:      100000,
+					Description: "Full redemption",
 				},
 			},
 			expectedError: "",
@@ -358,6 +384,46 @@ func TestValidateLedger(t *testing.T) {
 			},
 			transactions:  []Transaction{},
 			expectedError: "account name is required",
+		}, {
+			name: "transaction missing description",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
+			transactions: []Transaction{
+				{
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      100000,
+					Description: "",
+				},
+			},
+			expectedError: "transaction description is required",
+		},
+		{
+			name: "withdrawal before funding",
+			account: Account{
+				ID:   "FUND-001",
+				Name: "Global Macro Fund",
+			},
+			transactions: []Transaction{
+				{
+					ID:          "TXN-001",
+					AccountID:   "FUND-001",
+					Type:        Withdrawal,
+					Amount:      10000,
+					Description: "Early withdrawal",
+				},
+				{
+					ID:          "TXN-002",
+					AccountID:   "FUND-001",
+					Type:        Deposit,
+					Amount:      10000,
+					Description: "Later funding",
+				},
+			},
+			expectedError: "withdrawal exceeds available balance",
 		},
 	}
 
@@ -402,10 +468,11 @@ func TestAddTransactionAddsValidTransaction(t *testing.T) {
 
 	transactions := []Transaction{
 		{
-			ID:        "TXN-001",
-			AccountID: account.ID,
-			Type:      Deposit,
-			Amount:    100000,
+			ID:          "TXN-001",
+			AccountID:   account.ID,
+			Type:        Deposit,
+			Amount:      100000,
+			Description: "Additional funding",
 		},
 	}
 
@@ -449,10 +516,11 @@ func TestAddTransactionRejectsDuplicateID(t *testing.T) {
 
 	transactions := []Transaction{
 		{
-			ID:        "TXN-001",
-			AccountID: account.ID,
-			Type:      Deposit,
-			Amount:    100000,
+			ID:          "TXN-001",
+			AccountID:   account.ID,
+			Type:        Deposit,
+			Amount:      100000,
+			Description: "Initial funding",
 		},
 	}
 
@@ -491,10 +559,11 @@ func TestAddTransactionRejectsWithdrawalExceedingBalance(t *testing.T) {
 
 	transactions := []Transaction{
 		{
-			ID:        "TXN-001",
-			AccountID: account.ID,
-			Type:      Deposit,
-			Amount:    100000,
+			ID:          "TXN-001",
+			AccountID:   account.ID,
+			Type:        Deposit,
+			Amount:      100000,
+			Description: "Initial funding",
 		},
 	}
 
@@ -544,10 +613,11 @@ func TestFindTransactionByID(t *testing.T) {
 			Amount:    100000,
 		},
 		{
-			ID:        "TXN-002",
-			AccountID: "FUND-001",
-			Type:      Withdrawal,
-			Amount:    25000,
+			ID:          "TXN-002",
+			AccountID:   "FUND-001",
+			Type:        Withdrawal,
+			Amount:      25000,
+			Description: "Management fee",
 		},
 	}
 

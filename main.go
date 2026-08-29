@@ -378,6 +378,11 @@ func validateLedger(account Account, transactions []Transaction) error {
 	seenTransactionIDs := map[string]bool{}
 
 	for _, transaction := range transactions {
+		err := validateTransaction(transaction)
+		if err != nil {
+			return err
+		}
+
 		if transaction.AccountID != account.ID {
 			return errors.New("transaction belongs to a different account")
 		}
