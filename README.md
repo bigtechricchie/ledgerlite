@@ -1,12 +1,14 @@
-# LedgerLite
+# LedgerLite CLI
 
-LedgerLite is a lightweight banking ledger CLI built in Go for recording financial transactions, calculating balances, and enforcing basic ledger invariants.
+LedgerLite CLI is a lightweight command-line banking ledger built in Go for recording financial transactions, calculating balances, and enforcing basic ledger invariants.
 
 The project models a small transaction-based ledger with an emphasis on clear code, explicit business rules, predictable behaviour, and maintainable application design.
 
+Built by Edward Siwek.
+
 ## Features
 
-LedgerLite will progressively support:
+LedgerLite CLI currently supports:
 
 * Recording deposits and withdrawals
 * Maintaining transaction history
@@ -30,16 +32,17 @@ LedgerLite will progressively support:
 * Go standard library
 * Git
 
-LedgerLite currently has no third-party runtime dependencies.
+LedgerLite CLI currently has no third-party runtime dependencies.
 
 ## Project Structure
 
 ```text
-ledgerlite/
+ledgerlite-cli/
 ├── .gitignore
 ├── README.md
 ├── go.mod
-└── main.go
+├── main.go
+└── main_test.go
 ```
 
 The structure will evolve as application responsibilities become clearer.
@@ -62,9 +65,31 @@ From the project root:
 go run .
 ```
 
+## Code Quality
+
+Format the source code:
+
+```bash
+go fmt ./...
+```
+
+Run static analysis:
+
+```bash
+go vet ./...
+```
+
+Run the full test suite:
+
+```bash
+go test ./...
+```
+
+These checks should be run before committing changes.
+
 ## Building the Application
 
-Build the executable with:
+Build the executable from the project root:
 
 ```bash
 go build
@@ -82,16 +107,18 @@ On Windows PowerShell:
 .\ledgerlite.exe
 ```
 
-## Code Formatting
-
-Format the project using the standard Go formatter:
-
-```bash
-go fmt ./...
-```
-
 ## Current Status
 
-LedgerLite is under active development.
+LedgerLite CLI is under active development.
 
-The current implementation establishes the Go module and executable application entry point. Transaction modelling, ledger behaviour, validation, and command-line operations will be introduced incrementally.
+The current implementation provides an interactive in-memory ledger with
+deposit and withdrawal recording, transaction lookup, derived balance
+calculation, account and transaction validation, overdraft protection,
+automatic transaction identifiers, and automated tests for core ledger rules.
+
+## Disclaimer
+
+LedgerLite CLI is a software portfolio project. All organisations, accounts,
+transactions, identifiers, and financial data used in this repository are
+fictional and provided solely for demonstration purposes. Any resemblance
+to real entities or financial activity is coincidental.

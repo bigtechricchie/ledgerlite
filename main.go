@@ -26,14 +26,14 @@ type Transaction struct {
 	ID          string
 	AccountID   string
 	Type        TransactionType
-	Amount      int64
+	Amount      int64 // Amount is stored in minor units (pence).
 	Description string
 }
 
 func main() {
 	account := Account{
 		ID:   "FUND-001",
-		Name: "Global Opportunities Fund",
+		Name: "LedgerLite Demo Fund",
 	}
 
 	err := validateAccount(account)
@@ -235,7 +235,7 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 }
 
 func printMenu() {
-	fmt.Println("LedgerLite")
+	fmt.Println("LedgerLite CLI")
 	fmt.Println("Simple Banking Ledger")
 	fmt.Println()
 	fmt.Println("[1] View account")
@@ -248,47 +248,6 @@ func printMenu() {
 	fmt.Println("[q] Quit")
 	fmt.Println()
 	fmt.Print("Select an option: ")
-}
-
-func validateAccount(account Account) error {
-	if account.ID == "" {
-		return errors.New("account ID is required")
-	}
-
-	if account.Name == "" {
-		return errors.New("account name is required")
-	}
-
-	return nil
-}
-
-func nextTransactionID(transactions []Transaction) string {
-	usedIDs := map[string]bool{}
-
-	for _, transaction := range transactions {
-		usedIDs[transaction.ID] = true
-	}
-
-	for number := 1; ; number++ {
-		transactionID := fmt.Sprintf("TXN-%03d", number)
-
-		if !usedIDs[transactionID] {
-			return transactionID
-		}
-	}
-}
-
-func findTransactionByID(
-	transactions []Transaction,
-	transactionID string,
-) (Transaction, error) {
-	for _, transaction := range transactions {
-		if transaction.ID == transactionID {
-			return transaction, nil
-		}
-	}
-
-	return Transaction{}, errors.New("transaction not found")
 }
 
 func createTransaction(
@@ -338,28 +297,21 @@ func createTransaction(
 	return transaction, nil
 }
 
-func validateTransaction(transaction Transaction) error {
-	if transaction.ID == "" {
-		return errors.New("transaction ID is required")
+func readLine(reader *bufio.Reader) (string, error) {
+	input, err := reader.ReadString('\n')
+
+	if err != nil && err != io.EOF {
+		return "", err
 	}
 
-	if transaction.AccountID == "" {
-		return errors.New("account ID is required")
+	input = strings.TrimSpace(input)
+
+	// Preserve the final line when EOF arrives after readable input.
+	if err == io.EOF && input == "" {
+		return "", io.EOF
 	}
 
-	if transaction.Type != Deposit && transaction.Type != Withdrawal {
-		return errors.New("transaction type must be DEPOSIT or WITHDRAWAL")
-	}
-
-	if transaction.Amount <= 0 {
-		return errors.New("transaction amount must be greater than zero")
-	}
-
-	if strings.TrimSpace(transaction.Description) == "" {
-		return errors.New("transaction description is required")
-	}
-
-	return nil
+	return input, nil
 }
 
 func addTransaction(
@@ -382,7 +334,90 @@ func addTransaction(
 	return updatedTransactions, nil
 }
 
+func findTransactionByID(
+	transactions []Transaction,
+	transactionID string,
+) (Transaction, error) {
+	for _, transaction := range transactions {
+		if transaction.ID == transactionID {
+			return transaction, nil
+		}
+	}
+
+	return Transaction{}, errors.New("transaction not found")
+}
+
+func nextTransactionID(transactions []Transaction) string {
+	usedIDs := map[string]bool{}
+
+	for _, transaction := range transactions {
+		usedIDs[transaction.ID] = true
+	}
+
+	for number := 1; ; number++ {
+		transactionID := fmt.Sprintf("TXN-%03d", number)
+
+		if !usedIDs[transactionID] {
+			return transactionID
+		}
+	}
+}
+
+func calculateBalance(transactions []Transaction) int64 {
+	var balance int64
+
+	for _, transaction := range transactions {
+		if transaction.Type == Deposit {
+			balance += transaction.Amount
+		}
+
+		if transaction.Type == Withdrawal {
+			balance -= transaction.Amount
+		}
+	}
+
+	return balance
+}
+
+func validateAccount(account Account) error {
+	if strings.TrimSpace(account.ID) == "" {
+		return errors.New("account ID is required")
+	}
+
+	if strings.TrimSpace(account.Name) == "" {
+		return errors.New("account name is required")
+	}
+
+	return nil
+}
+
+func validateTransaction(transaction Transaction) error {
+	if strings.TrimSpace(transaction.ID) == "" {
+		return errors.New("transaction ID is required")
+	}
+
+	if strings.TrimSpace(transaction.AccountID) == "" {
+		return errors.New("account ID is required")
+	}
+
+	if transaction.Type != Deposit && transaction.Type != Withdrawal {
+		return errors.New("transaction type must be DEPOSIT or WITHDRAWAL")
+	}
+
+	if transaction.Amount <= 0 {
+		return errors.New("transaction amount must be greater than zero")
+	}
+
+	if strings.TrimSpace(transaction.Description) == "" {
+		return errors.New("transaction description is required")
+	}
+
+	return nil
+}
+
 func validateLedger(account Account, transactions []Transaction) error {
+	// Transactions are validated in ledger order because withdrawals
+	// depend on the balance available at that point in the sequence.
 	err := validateAccount(account)
 	if err != nil {
 		return err
@@ -423,92 +458,7 @@ func validateLedger(account Account, transactions []Transaction) error {
 	return nil
 }
 
-func calculateBalance(transactions []Transaction) int64 {
-	var balance int64
-
-	for _, transaction := range transactions {
-		if transaction.Type == Deposit {
-			balance += transaction.Amount
-		}
-
-		if transaction.Type == Withdrawal {
-			balance -= transaction.Amount
-		}
-	}
-
-	return balance
-}
-
-func printReport(account Account, transactions []Transaction, balance int64) {
-	fmt.Println("LedgerLite")
-	fmt.Println("Simple Banking Ledger")
-	fmt.Println()
-
-	printAccount(account)
-	printTransactions(transactions)
-	printBalance(balance)
-}
-
-func printAccount(account Account) {
-	fmt.Println("Account")
-	fmt.Println("-------")
-	fmt.Println("ID:", account.ID)
-	fmt.Println("Name:", account.Name)
-	fmt.Println()
-}
-
-func printTransactions(transactions []Transaction) {
-	fmt.Println("Transactions")
-	fmt.Println("------------")
-	fmt.Println("Number of transactions:", len(transactions))
-
-	for _, transaction := range transactions {
-		printTransaction(transaction)
-	}
-
-	fmt.Println()
-}
-
-func printTransaction(transaction Transaction) {
-	fmt.Println(
-		transaction.ID,
-		transaction.AccountID,
-		transaction.Type,
-		formatAmount(transaction.Amount),
-		transaction.Description,
-	)
-}
-
-func printBalance(balance int64) {
-	fmt.Println("Balance")
-	fmt.Println("-------")
-	fmt.Println(formatAmount(balance))
-	fmt.Println()
-}
-
-func formatAmount(amount int64) string {
-	pounds := amount / 100
-	pence := amount % 100
-
-	return fmt.Sprintf("£%d.%02d", pounds, pence)
-}
-
-func readLine(reader *bufio.Reader) (string, error) {
-	input, err := reader.ReadString('\n')
-
-	if err != nil && err != io.EOF {
-		return "", err
-	}
-
-	input = strings.TrimSpace(input)
-
-	if err == io.EOF && input == "" {
-		return "", io.EOF
-	}
-
-	return input, nil
-}
-
+// Parse pounds and pence without converting through floating-point.
 func parseAmount(input string) (int64, error) {
 	if strings.HasPrefix(input, "-") {
 		return 0, errors.New(
@@ -573,4 +523,58 @@ func parseAmount(input string) (int64, error) {
 	}
 
 	return amount, nil
+}
+
+func formatAmount(amount int64) string {
+	pounds := amount / 100
+	pence := amount % 100
+
+	return fmt.Sprintf("£%d.%02d", pounds, pence)
+}
+
+func printReport(account Account, transactions []Transaction, balance int64) {
+	fmt.Println("LedgerLite CLI")
+	fmt.Println("Simple Banking Ledger")
+	fmt.Println()
+
+	printAccount(account)
+	printTransactions(transactions)
+	printBalance(balance)
+}
+
+func printAccount(account Account) {
+	fmt.Println("Account")
+	fmt.Println("-------")
+	fmt.Println("ID:", account.ID)
+	fmt.Println("Name:", account.Name)
+	fmt.Println()
+}
+
+func printTransactions(transactions []Transaction) {
+	fmt.Println("Transactions")
+	fmt.Println("------------")
+	fmt.Println("Number of transactions:", len(transactions))
+
+	for _, transaction := range transactions {
+		printTransaction(transaction)
+	}
+
+	fmt.Println()
+}
+
+func printTransaction(transaction Transaction) {
+	fmt.Println(
+		transaction.ID,
+		transaction.AccountID,
+		transaction.Type,
+		formatAmount(transaction.Amount),
+		transaction.Description,
+	)
+}
+
+func printBalance(balance int64) {
+	fmt.Println("Balance")
+	fmt.Println("-------")
+	fmt.Println(formatAmount(balance))
+	fmt.Println()
 }
