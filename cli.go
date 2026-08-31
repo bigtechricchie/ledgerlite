@@ -49,10 +49,7 @@ func (app *App) runMenu() {
 			)
 
 		case "5":
-			transaction, err := createTransaction(
-				app.reader,
-				app.account,
-				app.transactions,
+			transaction, err := app.createTransaction(
 				Deposit,
 			)
 			if err != nil {
@@ -83,10 +80,7 @@ func (app *App) runMenu() {
 			fmt.Println()
 
 		case "6":
-			transaction, err := createTransaction(
-				app.reader,
-				app.account,
-				app.transactions,
+			transaction, err := app.createTransaction(
 				Withdrawal,
 			)
 			if err != nil {
@@ -170,17 +164,14 @@ func printMenu() {
 	fmt.Print("Select an option: ")
 }
 
-func createTransaction(
-	reader *bufio.Reader,
-	account Account,
-	transactions []Transaction,
+func (app *App) createTransaction(
 	transactionType TransactionType,
 ) (Transaction, error) {
-	transactionID := nextTransactionID(transactions)
+	transactionID := nextTransactionID(app.transactions)
 
 	fmt.Print("Amount (£): ")
 
-	rawAmount, err := readLine(reader)
+	rawAmount, err := readLine(app.reader)
 	if err != nil {
 		return Transaction{}, errors.New(
 			"could not read transaction amount",
@@ -194,7 +185,7 @@ func createTransaction(
 
 	fmt.Print("Description: ")
 
-	description, err := readLine(reader)
+	description, err := readLine(app.reader)
 	if err != nil {
 		return Transaction{}, errors.New(
 			"could not read transaction description",
@@ -203,7 +194,7 @@ func createTransaction(
 
 	transaction := Transaction{
 		ID:          transactionID,
-		AccountID:   account.ID,
+		AccountID:   app.account.ID,
 		Type:        transactionType,
 		Amount:      amount,
 		Description: description,
