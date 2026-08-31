@@ -41,8 +41,13 @@ ledgerlite-cli/
 ├── .gitignore
 ├── README.md
 ├── go.mod
+├── cli.go
+├── ledger.go
 ├── main.go
-└── main_test.go
+├── main_test.go
+├── models.go
+├── money.go
+└── validation.go
 ```
 
 The structure will evolve as application responsibilities become clearer.
