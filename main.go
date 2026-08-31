@@ -73,7 +73,11 @@ func main() {
 		return
 	}
 
-	reader := bufio.NewReader(os.Stdin)
+	app := App{
+		reader:       bufio.NewReader(os.Stdin),
+		account:      account,
+		transactions: transactions,
+	}
 
-	runMenu(reader, account, transactions)
+	app.runMenu()
 }

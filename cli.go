@@ -8,13 +8,19 @@ import (
 	"strings"
 )
 
-func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) {
+type App struct {
+	reader       *bufio.Reader
+	account      Account
+	transactions []Transaction
+}
+
+func (app *App) runMenu() {
 	shouldContinue := true
 
 	for shouldContinue {
 		printMenu()
 
-		option, err := readLine(reader)
+		option, err := readLine(app.reader)
 		if err != nil {
 			fmt.Println()
 			fmt.Println("Input stream closed.")
@@ -25,24 +31,28 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 
 		switch option {
 		case "1":
-			printAccount(account)
+			printAccount(app.account)
 
 		case "2":
-			printTransactions(transactions)
+			printTransactions(app.transactions)
 
 		case "3":
-			balance := calculateBalance(transactions)
+			balance := calculateBalance(app.transactions)
 			printBalance(balance)
 
 		case "4":
-			balance := calculateBalance(transactions)
-			printReport(account, transactions, balance)
+			balance := calculateBalance(app.transactions)
+			printReport(
+				app.account,
+				app.transactions,
+				balance,
+			)
 
 		case "5":
 			transaction, err := createTransaction(
-				reader,
-				account,
-				transactions,
+				app.reader,
+				app.account,
+				app.transactions,
 				Deposit,
 			)
 			if err != nil {
@@ -52,9 +62,9 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			transactions, err = addTransaction(
-				account,
-				transactions,
+			updatedTransactions, err := addTransaction(
+				app.account,
+				app.transactions,
 				transaction,
 			)
 			if err != nil {
@@ -64,6 +74,8 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
+			app.transactions = updatedTransactions
+
 			fmt.Println(
 				"Deposit recorded:",
 				transaction.ID,
@@ -72,9 +84,9 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 
 		case "6":
 			transaction, err := createTransaction(
-				reader,
-				account,
-				transactions,
+				app.reader,
+				app.account,
+				app.transactions,
 				Withdrawal,
 			)
 			if err != nil {
@@ -84,9 +96,9 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				continue
 			}
 
-			transactions, err = addTransaction(
-				account,
-				transactions,
+			updatedTransactions, err := addTransaction(
+				app.account,
+				app.transactions,
 				transaction,
 			)
 			if err != nil {
@@ -95,6 +107,8 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 				fmt.Println()
 				continue
 			}
+
+			app.transactions = updatedTransactions
 
 			fmt.Println(
 				"Withdrawal recorded:",
@@ -105,7 +119,7 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 		case "7":
 			fmt.Print("Transaction ID: ")
 
-			transactionID, err := readLine(reader)
+			transactionID, err := readLine(app.reader)
 			if err != nil {
 				fmt.Println()
 				fmt.Println("Could not read transaction ID")
@@ -114,7 +128,7 @@ func runMenu(reader *bufio.Reader, account Account, transactions []Transaction) 
 			}
 
 			transaction, err := findTransactionByID(
-				transactions,
+				app.transactions,
 				transactionID,
 			)
 			if err != nil {
